@@ -1,15 +1,14 @@
 #include <dt-bindings/zmk/pointing.h>
 
-/* 1. SPIピンの割り当て定義 (pinctrl) */
+/* SPIピン設定 */
 &pinctrl {
     spi0_default: spi0_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,  /* SCLK: P0.17 */
-                    <NRF_PSEL(SPIM_MOSI, 0, 6)>,  /* SDIO: P0.06 (送信) */
-                    <NRF_PSEL(SPIM_MISO, 0, 6)>;  /* SDIO: P0.06 (受信) */
+            psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 6)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 6)>;
         };
     };
-
     spi0_sleep: spi0_sleep {
         group1 {
             psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,
@@ -20,34 +19,30 @@
     };
 };
 
-/* 2. SPIバスとセンサーの設定 */
+/* SPIバス設定 */
 &spi0 {
     status = "okay";
     compatible = "nordic,nrf-spim";
     pinctrl-0 = <&spi0_default>;
     pinctrl-1 = <&spi0_sleep>;
     pinctrl-names = "default", "sleep";
-    
-    /* CSピン: P1.00 -> &gpio1 0 */
     cs-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
 
     trackball: trackball@0 {
         compatible = "pixart,pmw3610";
         reg = <0>;
         spi-max-frequency = <2000000>;
-        
-        /* MOTIONピン: P0.20 -> &gpio0 20 */
         irq-gpios = <&gpio0 20 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 
-        /* トラックボール設定 (必要に応じて数値を変更) */
-        cpi = <600>;        // 感度 (DPI)
+        /* マウス設定 */
+        cpi = <600>;
         evt-type = <INPUT_EV_REL>;
         x-input-code = <INPUT_REL_X>;
         y-input-code = <INPUT_REL_Y>;
     };
 };
 
-/* 3. トラックボールを入力装置として登録 */
+/* 入力デバイス登録 */
 / {
     trackball_listener {
         compatible = "zmk,input-listener";
