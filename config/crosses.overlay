@@ -1,0 +1,59 @@
+#include <dt-bindings/zmk/pointing.h>
+
+/* * SPIピン設定 
+ * SPI0 -> SPI1 に変更したため、ノード名も spi1_... に変更して区別します 
+ */
+&pinctrl {
+    spi1_default: spi1_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 6)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 6)>;
+        };
+    };
+    spi1_sleep: spi1_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 6)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 6)>;
+            low-power-enable;
+        };
+    };
+};
+
+/* * SPIバス設定 
+ * ここを &spi0 から &spi1 に変更します 
+ */
+&spi1 {
+    status = "okay";
+    compatible = "nordic,nrf-spim";
+    pinctrl-0 = <&spi1_default>;
+    pinctrl-1 = <&spi1_sleep>;
+    pinctrl-names = "default", "sleep";
+    
+    /* CSピン設定 */
+    cs-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
+
+    trackball: trackball@0 {
+        compatible = "pixart,pmw3610";
+        reg = <0>;
+        spi-max-frequency = <2000000>;
+        
+        /* 割り込みピン */
+        motion-gpios = <&gpio0 20 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+
+        /* 以前のエラー箇所の resolution は削除済み */
+        
+        /* 軸の設定 (Zephyr 4.x対応) */
+        zephyr,axis-x = <INPUT_REL_X>;
+        zephyr,axis-y = <INPUT_REL_Y>;
+    };
+};
+
+/* 入力デバイス登録 */
+/ {
+    trackball_listener {
+        compatible = "zmk,input-listener";
+        device = <&trackball>;
+    };
+};
